@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoe kan bouwinnovatie het verschil maken voor jouw bedrijf?</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart', 'bar']});
+        google.charts.setOnLoadCallback(loadGistData);
+
+        function loadGistData() {
+            const gistUrls = [
+                'https://gist.githubusercontent.com/gehuybre/dd49bdf5334f1ff39870fc8aab2770be/raw/34aa17734a80feddf7fd570ed29d67eec29265d1/techn%2520per%2520grootte',
+                'https://gist.githubusercontent.com/gehuybre/1471628fab6f42b66bba2bc0eeef971d/raw/f22cf9eb880f4a377f8a6dbf6ef691c17e87ac1d/gistfile1.txt'
+            ];
+            Promise.all(gistUrls.map(url => fetch(url).then(response => response.text())))
+                .then(([digitalData, innovationData]) => {
+                    const digitalParsed = Papa.parse(digitalData, { header: true, dynamicTyping: true }).data;
+                    const innovationParsed = Papa.parse(innovationData, { header: true, dynamicTyping: true }).data;
+
+                    const digitalCategories = ['Meer dan 50', '5 tot 50', 'Minder dan 5'];
+                    const innovationCategories = ['Meer dan 50', '5 tot 50', 'Minder dan 5'];
+
+                    const digitalDataGrouped = {
+                        "Meer dan 50": [],
+                        "5 tot 50": [],
+                        "Minder dan 5": []
+                    };
+
+                    digitalParsed.forEach(row => {
+                        digitalCategories.forEach(category => {
+                            const percentage = parseFloat(row[category].replace('%', ''));
+                            const color = percentage >= 50 ? 'color: green' : percentage >= 30 ? 'color: yellow' : 'color: red';
+                            digitalDataGrouped[category].push([row['Innovatieve Technologie'], percentage, color]);
+                        });
+                    });
+
+                    const innovationDataGrouped = {
+                        "Meer dan 50": [],
+                        "5 tot 50": [],
+                        "Minder dan 5": []
+                    };
+
+                    innovationParsed.forEach(row => {
+                        innovationCategories.forEach(category => {
+                            const value = parseFloat(row[category]);
+                            const color = value >= 0.5 ? 'color: green' : value >= 0.3 ? 'color: yellow' : 'color: red';
+                            innovationDataGrouped[category].push([row['Voordelen innovatie'], value * 100, color]);
+                        });
+                    });
+
+                    for (const category in digitalDataGrouped) {
+                        digitalDataGrouped[category].sort((a, b) => b[1] - a[1]);
+                    }
+
+                    for (const category in innovationDataGrouped) {
+                        innovationDataGrouped[category].sort((a, b) => b[1] - a[1]);
+                    }
+
+                    drawCharts(digitalDataGrouped, 'digital');
+                    drawCharts(innovationDataGrouped, 'innovation');
+                    drawBubbleChart();
+                    drawFactorsChart();
+                    drawFactorsByCompanySizeChart();
+                    drawChartpersector();
+                    drawEmployeeChart();
+                    drawCharts1();
+                })
+                .catch(error => console.error('Error fetching data: ', error));
+        }
+
+        function drawCharts(dataGrouped, type) {
+            for (const [category, dataArray] of Object.entries(dataGrouped)) {
+                drawChart(category, type, [['Technologie', 'Percentage', {role: 'style'}], ...dataArray]);
+            }
+        }
+
+        function drawChart(title, type, dataArray) {
+            const data = google.visualization.arrayToDataTable(dataArray);
+
+            const options = {
+                title: `${title} (${type === 'digital' ? 'Digitale Technologie' : 'Innovatieve Technologie'})`,
+                chartArea: {width: '75%'},
+                height: 800,
+                hAxis: {
+                    title: 'Percentage Bedrijven',
+                    minValue: 0,
+                    maxValue: 100
+                },
+                vAxis: {
+                    title: type === 'digital' ? 'Digitale Technologie' : 'Innovatieve Technologie',
+                    textStyle: {
+                        fontSize: 12
+                    }
+                },
+                legend: { position: 'none' }
+            };
+
+            const chart = new google.visualization.BarChart(document.getElementById(`${type}_${title.replace(/ /g, '_')}_chart`));
+            chart.draw(data, options);
+        }
+function drawBubbleChart() {
+var data = google.visualization.arrayToDataTable([
+        ['Innovatief', 'Aantal', 'Gemiddelde Score', 'Sentiment', 'Grootte'],
+        ['Helemaal akkoord', 20, 4.3, 1, 20],
+        ['Akkoord', 58, 2, 2, 58],
+        ['Niet akkoord', 14, 1.6, 3, 14],
+        ['Geen mening', 10, -2.5, 4, 10],
+        ['Helemaal niet akkoord', 6, -5.2, 5, 6]
+      ]);
+
+      var options = {
+        title: 'Mijn bedrijf is innovatief',
+        hAxis: {
+          title: 'Aantal',
+          viewWindow: {
+            max: 80
+          }
+        },
+        vAxis: {title: 'Zien bouwbedrijven maatschappelijke ontwikkelingen eerder als kans of als bedreiging?'},
+        bubble: {
+          textStyle: {
+            fontSize: 12,
+            color: 'green',
+            bold: true,
+            italic: true
+          }
+        },
+        colorAxis: {
+          values: [1, 2, 3, 4, 5],
+          colors: ['green', 'lightgreen', '#FFA500', '#FF4500', 'red']
+        },
+        sizeAxis: {minSize: 5, maxSize: 60}
+      };
+
+    var chart = new google.visualization.BubbleChart(document.getElementById('chart_div_bedreigingofkans'));
+    chart.draw(data, options);
+}
+function drawFactorsChart() {
+            var data = google.visualization.arrayToDataTable([
+                ['Factor', 'Aantal vermeldingen'],
+                ['Financiële aspecten', 15],
+                ['Betrokkenheid en samenwerking', 12],
+                ['Tijd en middelen', 10],
+                ['Praktische toepasbaarheid', 8],
+                ['Kennis en opleiding', 7],
+                ['Lange termijn denken', 6],
+                ['Openheid voor verandering', 5],
+                ['Regelgeving en ondersteuning', 5],
+                ['Duurzaamheid', 4],
+                ['Klantgerichtheid', 3]
+            ]);
+
+            var options = {
+                title: 'Cruciale Factoren bij Innovatie',
+                chartArea: {width: '50%'},
+                hAxis: {
+                    title: 'Aantal vermeldingen',
+                    minValue: 0
+                },
+                vAxis: {
+                    title: 'Factor'
+                }
+            };
+
+            var chart = new google.visualization.BarChart(document.getElementById('factors_chart'));
+            chart.draw(data, options);
+        }
+        function drawFactorsByCompanySizeChart() {
+            var data = google.visualization.arrayToDataTable([
+                ['Factor', 'Meer dan 50', '20 tot 50', '5 tot 20', 'Minder dan 5'],
+                ['Financiële aspecten', 18.5, 18.2, 18.8, 20.0],
+                ['Betrokkenheid en samenwerking', 14.8, 18.2, 12.5, 16.0],
+                ['Tijd en middelen', 11.1, 9.1, 12.5, 16.0],
+                ['Praktische toepasbaarheid', 7.4, 9.1, 12.5, 12.0],
+                ['Kennis en opleiding', 11.1, 9.1, 6.3, 8.0],
+                ['Lange termijn denken', 11.1, 9.1, 6.3, 4.0],
+                ['Openheid voor verandering', 3.7, 9.1, 6.3, 8.0],
+                ['Regelgeving en ondersteuning', 7.4, 9.1, 6.3, 4.0],
+                ['Duurzaamheid', 3.7, 9.1, 6.3, 4.0],
+                ['Klantgerichtheid', 3.7, 0.0, 6.3, 4.0]
+            ]);
+
+            var options = {
+                title: 'Aandeel van Cruciale Factoren per Bedrijfsgrootte',
+                chartArea: {width: '50%'},
+                isStacked: 'percent',
+                hAxis: {
+                    title: 'Aandeel (%)',
+                    minValue: 0,
+                    ticks: [0, .2, .4, .6, .8, 1]
+                },
+                vAxis: {
+                    title: 'Factor'
+                }
+            };
+
+            var chart = new google.visualization.BarChart(document.getElementById('factors_by_size_chart'));
+            chart.draw(data, options);
+        }
+                function drawChartpersector() {
+            var data = google.visualization.arrayToDataTable([
+            ['Subsector', 'Digitalisatie en Informatieverwerking', 'Kunstmatige Intelligentie (AI) en Automatisering', 'Geavanceerde Visuele Technologieën'],
+          ['Afwerking van gebouwen', 0.823009, 0.044248, 0.132743],
+          ['Bouw van wegen', 0.710843, 0.072289, 0.228916],
+          ['Elektrische installatie', 0.840426, 0.106383, 0.053191],
+          ['Niet-residentiële gebouwen', 0.783133, 0.024096, 0.192771],
+          ['Residentiële gebouwen', 0.778443, 0.023952, 0.203593],
+          ['Andere', 0.659091, 0.090909, 0.250000]
+        ]);
+
+            var options = {
+                title: 'Vergelijking van technologiegebruik per subsector',
+                hAxis: {title: 'Subsector', titleTextStyle: {color: '#333'}},
+                vAxis: {minValue: 0},
+                chartArea: {width: '60%'},
+                isStacked: true
+            };
+
+            var chart = new google.visualization.BarChart(document.getElementById('Chart_per_sector'));
+            chart.draw(data, options);
+        }
+              function drawEmployeeChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Subsector', 'Aantal antwoorden'],
+          ['Afwerking van gebouwen', 31],
+          ['Andere', 9],
+          ['Bouw van wegen', 10],
+          ['Elektrische installatie', 21],
+          ['Niet-residentiële gebouwen', 11],
+          ['Residentiële gebouwen', 26]
+        ]);
+
+        var options = {
+          title: 'Aantal antwoorden per subsector',
+          hAxis: {title: 'Subsector', titleTextStyle: {color: '#333'}},
+          vAxis: {title: 'Aantal antwoorden', minValue: 0},
+          chartArea: {width: '60%'},
+          bars: 'vertical',
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('employee_chart'));
+        chart.draw(data, options);
+      }
+       function drawCharts1() {
+            // Foutenmarge grafiek
+            var data = new google.visualization.DataTable();
+            data.addColumn('number', 'Steekproefgrootte');
+            data.addColumn('number', 'Foutenmarge (%)');
+            data.addRows([
+                [108, 9.37],
+                [200, 6.89],
+                [500, 4.36],
+                [1000, 3.08],
+                [2000, 2.18]
+            ]);
+
+            var options = {
+                title: 'Foutenmarge vs. Steekproefgrootte',
+                hAxis: {title: 'Steekproefgrootte'},
+                vAxis: {title: 'Foutenmarge (%)'},
+                legend: 'none',
+                curveType: 'function'
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+            chart.draw(data, options);
+
+            // Betrouwbaarheidsinterval grafiek
+            var data2 = google.visualization.arrayToDataTable([
+                ['Categorie', 'Percentage', { role: 'style' }],
+                ['Ondergrens', 40.63, '#76A7FA'],
+                ['Schatting', 50, '#3366CC'],
+                ['Bovengrens', 59.37, '#76A7FA']
+            ]);
+
+            var options2 = {
+                title: 'Betrouwbaarheidsinterval (95%)',
+                legend: 'none',
+                hAxis: {
+                    ticks: [0, 25, 50, 75, 100]
+                }
+            };
+
+            var chart2 = new google.visualization.BarChart(document.getElementById('bar_chart'));
+            chart2.draw(data2, options2);
+        }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+        .description {
+            max-width: 1200px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .chart {
+            width: 100%;
+            max-width: 1200px;
+            height: 800px;
+            margin: 2px 0;
+        }
+        p {
+            text-align: justify;
+        }
+        function drawEmployeeChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Subsector', 'Aantal werknemers'],
+          ['Afwerking van gebouwen', 31],
+          ['Andere', 9],
+          ['Bouw van wegen', 10],
+          ['Elektrische installatie', 21],
+          ['Niet-residentiële gebouwen', 11],
+          ['Residentiële gebouwen', 26]
+        ]);
+
+        var options = {
+          title: 'Aantal werknemers per subsector',
+          hAxis: {title: 'Subsector', titleTextStyle: {color: '#333'}},
+          vAxis: {title: 'Aantal werknemers', minValue: 0},
+          chartArea: {width: '60%'},
+          bars: 'vertical',
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('employee_chart'));
+        chart.draw(data, options);
+      }
+
+    </style>
+</head>
+<body>
+    <h1>Hoe kan bouwinnovatie het verschil maken voor jouw bedrijf?</h1>
+    <div class="description">
+        <h2>Vraag 1: Stellingen over innovatie in de bouwsector</h2>
+        <p>De enquête toont een overweldigend positieve houding tegenover innovatie in de bouwsector. De meerderheid van de respondenten erkent dat zowel de bouw- en installatiesector innovatief als hun eigen bedrijf innovatief zijn. Er is een sterke consensus dat innovatie cruciaal is voor de toekomst van de sector, met name in het licht van klimaatuitdagingen en de noodzaak om al het werk gedaan te krijgen. Deze resultaten suggereren een groeiend bewustzijn in de sector over de noodzaak van innovatie, gedreven door externe factoren zoals klimaatverandering, personeelstekorten en toenemende complexiteit van projecten. Het feit dat bedrijven innovatie als rendabel beschouwen, duidt op een positieve ervaring met eerdere innovatie-inspanningen.</p>
+        <p>De sterke steun voor de stelling dat bestaande innovaties meer tot bij de bedrijven moeten geraken, wijst echter op een kloof tussen beschikbare innovaties en de implementatie ervan in de praktijk. Dit suggereert dat er behoefte is aan betere kennisverspreiding en ondersteuning bij de implementatie van innovaties.</p>
+
+    </div>
+
+        <div class="description">
+        <h2>Vraag 2: Welke innovatieve technologieën gebruiken bouwbedrijven?</h2>
+            <a href="https://gist.githubusercontent.com/gehuybre/dd49bdf5334f1ff39870fc8aab2770be/raw/34aa17734a80feddf7fd570ed29d67eec29265d1/techn%2520per%2520grootte" target="_blank">Brongegevens grafieken bekijken</a>
+
+            <p>De onderstaande grafieken tonen de meest gebruikte digitale en innovatieve technologieën, opgesplitst naar het aantal werknemers in het bedrijf. Deze gegevens geven inzicht in hoe verschillende grootteklassen van bouwbedrijven digitale technologieën adopteren en gebruiken om hun processen te verbeteren en efficiënter te werken.</p>
+            <p>De adoptie van digitale technologieën in de bouwsector vertoont een duidelijke focus op praktische, direct toepasbare oplossingen. De meest gebruikte technologieën zijn gericht op het verbeteren van de dagelijkse werkprocessen en het verhogen van de efficiëntie. Het digitaal beschikbaar houden van plannen en documenten, digitale kostprijsberekening, en digitale opvolging van kosten staan bovenaan de lijst. Deze trend wijst op een pragmatische benadering van digitalisering, waarbij bedrijven prioriteit geven aan technologieën die direct bijdragen aan hun operationele efficiëntie en kostenbeheer. Het relatief hoge gebruik van ERP-software en BIM-software toont aan dat er ook investeringen worden gedaan in meer geavanceerde systemen voor projectmanagement en -modellering.</p>
+            <p>De adoptie van meer geavanceerde technologieën zoals artificiële intelligentie, robotica, en virtual/augmented reality is nog beperkt. Dit suggereert dat er nog veel ruimte is voor verdere digitale transformatie in de sector. De lage adoptiegraad van deze technologieën kan te wijten zijn aan factoren zoals hoge investeringskosten, gebrek aan kennis of onzekerheid over de praktische toepasbaarheid in de bouwcontext. Deze resultaten impliceren dat er een behoefte is aan meer voorlichting, demonstratieprojecten en ondersteuning om de adoptie van meer geavanceerde digitale technologieën te stimuleren. Het zou waardevol kunnen zijn om de voordelen en praktische toepassingen van deze technologieën duidelijker te communiceren naar de sector.</p>
+        </div>
+    <div class="description">
+        <p><strong>Bedrijven met meer dan 50 werknemers</strong>
+        Deze bedrijven maken voornamelijk gebruik van geavanceerde technologieën zoals ERP-software, BIM-software en digitale opvolging van personeelsinzet. Dit duidt op een hoge mate van digitalisering om complexiteit en schaal aan te kunnen. Grote bedrijven hebben doorgaans meer middelen en een grotere noodzaak om complexe processen te stroomlijnen, wat de hoge adoptiegraad van deze technologieën verklaart. De impact hiervan is dat ze efficiënter kunnen werken, fouten kunnen minimaliseren en kosten kunnen besparen door betere planning en beheer.</p>
+        <div id="digital_Meer_dan_50_chart" class="chart"></div>
+        </div>
+        <div class="description">
+        <p><strong>Bedrijven met 5 tot 50 werknemers:</strong> Bedrijven in deze categorie gebruiken vaak technologieën zoals digitale kostprijsberekening en digitale opvolging van personeelsinzet. Dit wijst op een focus op kostenbeheer en efficiëntie, wat cruciaal is voor middelgrote bedrijven die proberen concurrerend te blijven zonder de schaalvoordelen van grotere bedrijven. De adoptie van deze technologieën helpt hen om nauwkeurigere begrotingen te maken, beter toezicht te houden op de voortgang en middelen efficiënter te gebruiken.</p>
+        <div id="digital_5_tot_50_chart" class="chart"></div>
+        </div>
+
+        <div class="description">
+        <p><strong>Bedrijven met minder dan 5 werknemers:</strong> De adoptiegraad voor digitale technologieën is lager in vergelijking met grotere bedrijven, met een aantal technologieën die door ongeveer 50-70% van deze bedrijven worden gebruikt. De focus ligt op essentiële digitale tools zoals kostenberekening en personeelsbeheer. Kleine bedrijven hebben vaak minder middelen om te investeren in dure technologieën en hebben minder complexe processen, wat hun lagere adoptiegraad verklaart. Echter, het gebruik van basale digitale tools helpt hen toch om operationele efficiëntie te verbeteren en concurrentievoordeel te behalen.</p>
+            <div id="digital_Minder_dan_5_chart" class="chart"></div></div>
+
+        <div class="description">
+            <h2>Technologiegebruik per subsector</h2>
+            <a href="https://gist.githubusercontent.com/gehuybre/535116eacaecc0d8af0187a0c668f577/raw/233472316e811cf4166de4156b8ce36fd840e3c4/gistfile1.txt" target="_blank">Brongegevens grafieken bekijken</a>
+
+         <p>De grafiek toont het gebruik van technologieën gegroepeerd in drie technologieën per subsector:</p>
+
+    <ol>
+        <li><strong>Digitalisatie en Informatieverwerking:</strong> Deze categorie domineert in alle subsectoren, wat wijst op een brede adoptie van basistechnologieën voor digitale informatieverwerking.</li>
+        <li><strong>Kunstmatige Intelligentie (AI) en Automatisering:</strong> Deze geavanceerde technologieën hebben een relatief lage adoptiegraad in alle subsectoren.</li>
+        <li><strong>Geavanceerde Visuele Technologieën:</strong> Deze categorie toont variatie tussen de subsectoren, wat suggereert dat sommige sectoren meer baat hebben bij of meer open staan voor deze technologieën.</li>
+    </ol>
+
+    <h3>Belangrijkste observaties</h3>
+
+    <ul>
+        <li>De subsector 'Elektrische installatie' toont de hoogste adoptie van digitalisatie en informatieverwerking (84%),maar het laagste gebruik van geavanceerde visuele technologieën (5.3%).</li>
+        <li>'Bouw van wegen' en 'Andere' subsectoren tonen een meer evenwichtige verdeling tussen de drie categorieën, met een relatief hoog gebruik van geavanceerde visuele technologieën (respectievelijk 22.9% en 25.0%).</li>
+        <li>De 'Residentiële gebouwen' subsector heeft de laagste adoptie van AI en automatisering (2.4%), maar een hoog gebruik van geavanceerde visuele technologieën (20.2%).</li>
+    </ul>
+    <p>Deze gegevens suggereren dat basisdigitalisatie wijdverspreid is in de bouwsector, ongeacht de subsector. AI en automatisering nog in een vroeg stadium van adoptie zijn, mogelijk vanwege de complexiteit of hoge implementatiekosten. Het gebruik van geavanceerde visuele technologieën varieert aanzienlijk tussen subsectoren, wat kan wijzen op verschillende behoeften of toepassingsmogelijkheden.ommige subsectoren, zoals de wegenbouw, lijken meer open te staan voor een bredere adoptie van verschillende technologieën.</p>
+            <div id="Chart_per_sector" class="chart"></div>
+    <h3>Beperkt aantal waarnemingen</h3>
+<a href="https://gist.githubusercontent.com/gehuybre/8f021019cafebea3ac15f07dea9a52f4/raw/663cc694b5e5fb5e29e011c9a911b3d442dbd0b0/gistfile1.txt" target="_blank">Brongegevens grafieken bekijken</a>
+<p></p>
+        <div id="employee_chart" class="chart"></div>
+        </div>
+
+    </div>
+
+       <div class="description">
+           <h2>Vraag 3: Klimaat en duurzaamheid</h2>
+           <p>De resultaten tonen een overwegend positieve houding tegenover klimaat- en duurzaamheidsgerelateerde ontwikkelingen in de bouwsector. De meerderheid van de respondenten ziet deze ontwikkelingen als opportuniteiten voor hun bedrijf, met name op het gebied van energetische renovaties en klimaatvriendelijk bouwen. Deze positieve perceptie suggereert dat de bouwsector de transitie naar duurzaamheid niet alleen als een noodzaak ziet, maar ook als een kans voor groei en innovatie. Het wijst op een bereidheid om te investeren in duurzame bouwpraktijken en -technologieën, wat cruciaal is voor het behalen van klimaatdoelstellingen in de gebouwde omgeving. Ook het gebruik van bio-gebaseerde materialen, en natuurinclusief bouwen worden overwegend als kansen gezien. Dit duidt op een vooruitstrevende houding in de sector en een bereidheid om nieuwe benaderingen te verkennen. </p>
+            <p>De perceptie van emissieloze werven (incl. werfverkeer, elektrificatie en/of “decarboniseren”) als een meer neutrale factor of zelfs een bedreiging voor sommige bedrijven wijst op potentiële uitdagingen bij de implementatie van deze praktijk. Dit kan te maken hebben met de verwachte kosten of technische uitdagingen die gepaard gaan met het volledig emissievrij maken van bouwplaatsen. </p>
+           <p>De algemene positieve houding tegenover duurzaamheid biedt kansen voor beleidsmakers en sectororganisaties om verdere stappen te zetten in de verduurzaming van de bouwsector. Het suggereert dat er een vruchtbare bodem is voor initiatieven die duurzame bouwpraktijken stimuleren en ondersteunen. Tegelijkertijd is er wellicht behoefte aan specifieke ondersteuning en innovatie om de transitie naar volledig emissieloze werven te faciliteren.</p>
+       </div>
+           <div class="description">
+           <h2>Vraag 4: Rendabiliteit en competitiviteit</h2>
+           <p>Er is een duidelijke tweedeling zichtbaar tussen factoren die als bedreiging worden ervaren en die als kans worden gezien. De focus van opdrachtgevers op de laagste prijs wordt overwegend als een bedreiging gezien. Veel bedrijven maken zich zorgen over een 'race to the bottom' die ten koste kan gaan van kwaliteit en innovatie. </p>
+           <p>Tegelijkertijd worden de toenemende eisen van opdrachtgevers met betrekking tot kwaliteit en duurzaamheid vaak als een kans gezien. Dit duidt op een spanningsveld tussen prijs en kwaliteit in de sector. </p>
+           <p>Het personeelstekort en de veranderende competentienoden van personeel worden als significante uitdagingen ervaren. Dit onderstreept de noodzaak voor de sector om te investeren in opleiding en het aantrekken van nieuw talent. </p>
+           <p>Ook nieuwe bouwmethoden en samenwerkingsvormen worden overwegend als kansen gezien. Off-site productie, modulair bouwen, en het sterker inzetten op Bouwteams en BIM worden positief beoordeeld. Dit suggereert een openheid voor innovatie en een erkenning dat deze methoden kunnen bijdragen aan efficiëntie en kwaliteitsverbetering. De positieve houding tegenover specialisatie en verbreding van dienstverlening wijst op een trend naar meer differentiatie in de markt. Bedrijven beseffen dat ze zich moeten onderscheiden om competitief te blijven. </p>
+           <p>Deze resultaten impliceren dat de sector zich bewust is van de noodzaak om te innoveren en te evolueren om competitief te blijven. Er lijkt een bereidheid te zijn om nieuwe methoden en technologieën te adopteren, maar er zijn ook duidelijke zorgen over prijsdruk en personeelstekorten. Er is behoefte aan een gebalanceerde aanpak die innovatie stimuleert, maar ook rekening houdt met de economische realiteit en de uitdagingen op de arbeidsmarkt.</p>
+           </div>
+        <div class="description">
+           <h2>Vraag 5: Toenemende complexiteit en administratieve rompslomp</h2>
+           <p>De moeilijkheid om vergunningen te krijgen en de bijkomende regels die extra administratie en kosten veroorzaken, worden overwegend als bedreigingen gezien. Veel bedrijven ervaren de huidige regelgeving als een belemmering ervaren voor hun operationele efficiëntie en groei. De perceptie van toenemende complexiteit en strengheid van contracten als een bedreiging versterkt dit beeld. De vraag naar bijkomende certificaten roept gemengde reacties op, wat kan duiden op een erkenning van de waarde van kwaliteitsgaranties, maar ook bezorgdheid over de bijkomende administratieve last. Deze resultaten impliceren dat er behoefte is aan een meer gestroomlijnde en efficiënte regelgeving die de sector ondersteunt zonder onnodige belemmeringen te creëren.</p>
+            <p>Beperkingen op bouwen en wonen, en de trend naar verdichting, roepen meer gemengde reacties op. Dit kan erop wijzen dat sommige bedrijven deze ontwikkelingen als kansen zien om zich te specialiseren of nieuwe markten aan te boren. </p>
+            <p>Aan de andere kant worden overheidsinvesteringen in publieke infrastructuur, gebouwen en betaalbaar wonen overwegend als kansen gezien. Gerichte overheidsinvesteringen kunnen dienen als een katalysator voor innovatie en groei in de sector. Het is daarom waardevol om te onderzoeken hoe regelgeving en overheidsinvesteringen beter kunnen worden ingezet om innovatie te stimuleren en de sector te ondersteunen bij het aanpakken van maatschappelijke uitdagingen zoals betaalbaar wonen en duurzame stedelijke ontwikkeling.</p>
+        </div>
+            <div class="description">
+        <h2>Vraag 6: Wat zijn volgens bouwbedrijven de voordelen dankzij het toepassen van innovatieve technologieën?</h2>
+                <a href="https://gist.githubusercontent.com/gehuybre/1471628fab6f42b66bba2bc0eeef971d/raw/f22cf9eb880f4a377f8a6dbf6ef691c17e87ac1d/gistfile1.txt" target="_blank">Brongegevens grafieken bekijken</a>
+                <p>De resultaten tonen aan dat innovatie een breed scala aan positieve effecten heeft, variërend van kwaliteitsverbetering tot kostenreductie en marktuitbreiding. Het meest gerapporteerde effect is de verbetering van de kwaliteit van goederen of diensten, wat door 65 bedrijven wordt genoemd. Dit suggereert dat innovatie een directe impact heeft op het eindproduct of de dienstverlening, wat leidt tot hogere klanttevredenheid en een betere reputatie in de markt. </p>
+        <p>Lagere faalkosten worden door 44 bedrijven genoemd als een effect van innovatie. Dit is een significant voordeel, aangezien het niet alleen de winstgevendheid verbetert, maar ook wijst op efficiëntere processen en mogelijk een betere kwaliteitscontrole. </p>
+                <p>37 bedrijven melden dat innovatie heeft geleid tot activiteiten op nieuwe markten, dit geeft aan dat innovatie ook een rol speelt in de groei en diversificatie van bedrijven. Dit kan cruciaal zijn voor de lange-termijn levensvatbaarheid van bedrijven in een veranderende markt. </p>
+                <p>Andere vaak genoemde effecten, zoals naleving van regelgeving, een groter marktaandeel, en verbeterde gezondheid en veiligheid, onderstrepen de veelzijdige impact van innovatie. Het laat zien dat innovatie niet alleen economische voordelen biedt, maar ook bijdraagt aan maatschappelijke doelen en de algemene professionalisering van de sector. </p>
+                <p>Deze resultaten bieden een krachtig argument voor het stimuleren van innovatie in de bouwsector. Ze tonen aan dat de voordelen van innovatie verder reiken dan alleen technologische vooruitgang en een directe positieve impact hebben op de bedrijfsvoering, marktpositie en de kwaliteit van het geleverde werk. Dit kan dienen als motivatie voor bedrijven die nog terughoudend zijn met innoveren, en als onderbouwing voor beleidsmakers en sectororganisaties om innovatie-initiatieven te ondersteunen.</p>
+                <p><strong>Meest voorkomende voordelen van innovatie:</strong> Ongeacht de grootte van het bedrijf, zien veel bedrijven voordelen in innovatie zoals verbeterde kwaliteit van goederen of diensten en lagere faalkosten. Dit onderstreept het belang van voortdurende verbetering en efficiëntie in de bouwsector om concurrerend te blijven en te voldoen aan de verwachtingen van klanten en regelgeving.</p>
+                <p><strong>Minst voorkomende voordelen van innovatie:</strong> Voordelen zoals internationalisering en lagere loonkosten per eenheid output worden minder vaak genoemd.</p>
+                <p><strong>Gelijkenissen tussen de verschillende groottes:</strong> Alle bedrijven, ongeacht hun grootte, waarderen innovatie vooral vanwege de verbeterde kwaliteit en de efficiëntievoordelen. Grotere bedrijven hebben echter meer middelen om uitgebreidere innovatieprojecten te implementeren, wat leidt tot bredere voordelen zoals internationalisering en het realiseren van een groter marktaandeel. Kleinere bedrijven richten zich meer op directe verbeteringen in kwaliteit en interne processen.</p>
+            </div>
+    <div class="description">
+                <p><strong>Bedrijven met meer dan 50 werknemers:</strong> Grote bedrijven zien significante voordelen in innovatie zoals verbeterde kwaliteit van goederen of diensten (70.7%) en lagere faalkosten (63.4%). Dit toont aan dat grotere bedrijven innovatie inzetten om zowel de kwaliteit te verbeteren als kosten te reduceren. Innovatie helpt deze bedrijven ook om hun marktaandeel te vergroten en zich op nieuwe mark</p>
+      <div id="innovation_Meer_dan_50_chart" class="chart"></div>
+    </div>
+    <div class="description">
+      <p><strong>Bedrijven met 5 tot 50 werknemers:</strong> Middelgrote bedrijven zien vooral voordelen in betere kwaliteit van goederen of diensten (61.7%) en hogere marges (35.3%). Innovatie in deze bedrijven richt zich vaak op het verbeteren van de efficiëntie en het verhogen van de marges. Dit helpt hen om concurrerend te blijven en winstgevender te worden. De focus op efficiëntere productie en dienstverlening helpt hen ook om hun operationele flexibiliteit te verbeteren, wat cruciaal is in een dynamische markt. Daarnaast speelt innovatie een rol bij het naleven van regelgeving (35.2%) en het verminderen van materiaal- en energieverbruik (20.6%), wat bijdraagt aan duurzaamheid en kostenreductie.</p>
+        <div id="innovation_5_tot_50_chart" class="chart"></div>
+    </div>
+    <div class="description">
+        <p><strong>Bedrijven met minder dan 5 werknemers:</strong> Kleine bedrijven ervaren innovatievoordelen voornamelijk in termen van verbeterde kwaliteit van goederen of diensten (57.7%) en lagere faalkosten (30.8%). Voor deze bedrijven is het belangrijk om zich te onderscheiden op kwaliteit om concurrerend te blijven. Innovatie helpt hen ook om interne processen te verbeteren en de naleving van regelgeving te waarborgen (34.6%). Dit stelt hen in staat om een divers aanbod van goederen en diensten te leveren (26.9%) en de flexibiliteit van hun productie of dienstverlening te vergroten (23.1%).</p>
+        <div id="innovation_Minder_dan_5_chart" class="chart"></div>
+        </div>
+            <div class="description">
+        <h2>Vraag 7: Belemmeringen voor innovatie</h2>
+           <p>De resultaten tonen aan dat de belangrijkste belemmeringen zowel van praktische als financiële aard zijn. Tijdsgebrek wordt vaak genoemd als een significante belemmering. Dit suggereert dat veel bedrijven worstelen met de dagelijkse operationele eisen en moeite hebben om tijd vrij te maken voor innovatie-initiatieven. </p>
+            <p>Innovatie wordt gezien als iets 'extra', in plaats van een geïntegreerd onderdeel van de bedrijfsvoering. Gebrek aan financiële middelen en onzekerheid over return on investment zijn andere veelgenoemde belemmeringen. Dit wijst op een perceptie van hoog risico en hoge kosten geassocieerd met innovatie. </p>
+            <p>Het suggereert dat er behoefte is aan financiële ondersteuning of incentives om innovatie te stimuleren, evenals aan betere methoden om de potentiële opbrengsten van innovatie te kwantificeren en te communiceren. De moeilijkheid om gekwalificeerd personeel te vinden voor het voorbereiden en uitvoeren van innovatie-investeringen is ook een belangrijk punt. Dit sluit aan bij de eerder geïdentificeerde uitdagingen op het gebied van personeelstekorten en veranderende competentiebehoeften. </p>
+            <p>Gebrek aan informatie en kennis over beschikbare innovatieve technieken en tools wordt ook genoemd, wat wijst op een behoefte aan betere kennisverspreiding en ondersteuning bij de implementatie van innovaties. </p>
+            <p>Mogelijke manieren om drempels voor innovatie weg te nemen zijn:</p>
+                <ol>
+  <li>Ondersteuning bij het integreren van innovatie in de dagelijkse bedrijfsvoering.</li>
+  <li>Financiële stimulansen of risicodelingsmechanismen om de financiële barrières te verlagen.</li>
+  <li>Opleidings- en trainingsinitiatieven om de benodigde vaardigheden voor innovatie te ontwikkelen.</li>
+  <li>Verbeterde kennisdeling en demonstratieprojecten om de toegang tot informatie over innovatieve technieken te vergroten.</li>
+  <li>Hulp bij het kwantificeren en communiceren van de potentiële voordelen van innovatie om de onzekerheid over ROI te verminderen.</li>
+       </ol>
+            </div>
+   <div class="description">
+       <h2>Vraag 9:Cruciale factoren bij innovatie in de bouwsector</h2>
+       <a href="https://gist.githubusercontent.com/gehuybre/07ecd781b8d265af79e7f1764f885d01/raw/dab9bea781eb1b4ecdda702c124da2c2b56d4a21/gistfile1.txt" target="_blank">Brongegevens grafieken bekijken</a>
+
+        <p>Bij de analyse van de antwoorden op de open vraag "Wat is volgens u cruciaal bij innovatie?" hebben we de antwoorden ingedeeld in 10 thema's.</p>
+        <ol>
+            <li><strong>Financiële aspecten:</strong> Veel respondenten benadrukken het belang van kostenbesparingen, rendement en betaalbaarheid van innovatie.</li>
+            <li><strong>Betrokkenheid en samenwerking:</strong> Er wordt vaak genoemd dat alle stakeholders, inclusief werknemers en klanten, betrokken moeten zijn bij het innovatieproces.</li>
+            <li><strong>Tijd en middelen:</strong> worden gezien als cruciaal voor succesvolle innovatie.</li>
+            <li><strong>Praktische toepasbaarheid:</strong> De nadruk ligt op innovaties die daadwerkelijk implementeerbaar zijn en problemen oplossen.</li>
+            <li><strong>Kennis en opleiding:</strong> Het belang van opleiding, kennisdeling en bewustwording wordt regelmatig genoemd.</li>
+            <li><strong>Lange termijn denken:</strong> Verschillende respondenten benadrukken het belang van een langetermijnvisie bij innovatie.</li>
+            <li><strong>Openheid voor verandering:</strong> Een mentaliteitsverandering en bereidheid om nieuwe methoden te adopteren worden als cruciaal gezien.</li>
+            <li><strong>Regelgeving en ondersteuning:</strong> Er is behoefte aan een ondersteunend regelgevend kader en stimulerende maatregelen.</li>
+            <li><strong>Duurzaamheid:</strong> Milieu-impact en duurzaamheid worden genoemd als belangrijke factoren.</li>
+            <li><strong>Klantgerichtheid:</strong> Enkele respondenten benadrukken het belang van klantgerichte innovatie.</li>
+        </ol>
+        <p>Opvallend is dat de antwoorden variëren afhankelijk van de grootte van het bedrijf. Grotere bedrijven lijken meer nadruk te leggen op strategische aspecten en langetermijndenken, terwijl kleinere bedrijven vaker praktische toepasbaarheid en kostenbesparingen noemen. Financiële overwegingen blijven een belangrijke drijfveer, maar er is ook een groeiend bewustzijn van het belang van samenwerking, kennisdeling en duurzaamheid. Het is duidelijk dat er behoefte is aan een gebalanceerde aanpak die zowel praktische als strategische aspecten van innovatie adresseert, rekening houdend met de verschillende perspectieven van kleine en grote bedrijven in de sector.</p>
+    </div>
+
+    <div class="description"><div id="factors_chart" class="chart"></div></div>
+        <div class="description">
+            <h2>Analyse per bedrijfsgrootte</h2>
+            <p>Financiële overwegingen blijven een belangrijke drijfveer voor alle bedrijfsgroottes, maar er zijn enkele interessante verschillen:</p>
+        <ul>
+            <li>Grotere bedrijven (meer dan 50 werknemers) leggen relatief meer nadruk op lange termijn denken en kennis en opleiding.</li>
+            <li>Middelgrote bedrijven (20 tot 50 werknemers) hebben een meer gelijkmatige verdeling over de verschillende factoren, met een lichte voorkeur voor betrokkenheid en samenwerking.</li>
+            <li>Kleinere bedrijven (minder dan 20 werknemers) benadrukken vaker het belang van tijd en middelen en praktische toepasbaarheid.</li>
+        </ul>
+        <p>Deze verschillen suggereren dat de aanpak voor het stimuleren van innovatie mogelijk moet worden aangepast aan de grootte van het bedrijf. Grotere bedrijven kunnen baat hebben bij ondersteuning bij lange termijn strategieën en kennismanagement, terwijl kleinere bedrijven meer behoefte kunnen hebben aan praktische hulp en resources om innovatie te implementeren.</p>
+
+            <div id="factors_by_size_chart" class="chart"></div></div>
+
+
+
+
+<div class="description">
+        <h2>Zien bedrijven die zichzelf zien als innovatief meer kansen of meer bedreigingen wanneer geconfronteerd met maatschappelijke uitdagingen?</h2>
+    <p>De onderstaande analyse toont de relatie tussen hoe innovatief bouwbedrijven zichzelf beschouwen en hoe ze maatschappelijke ontwikkelingen ervaren (als bedreiging of kans). Hier zijn de belangrijkste bevindingen:</p>
+
+    <ol>
+        <li><strong>Innovatieve houding:</strong> De meerderheid van de bedrijven (78 van de 108) beschouwt zichzelf als innovatief, waarbij ze "Akkoord" of "Helemaal akkoord" gaan met de stelling dat hun bedrijf innovatief is.</li>
+
+        <li><strong>Perceptie van maatschappelijke ontwikkelingen:</strong>
+            <ul>
+                <li>Bedrijven die zichzelf als zeer innovatief zien ("Helemaal akkoord"), hebben gemiddeld een positieve score (4.3), wat suggereert dat ze maatschappelijke ontwikkelingen meer als kansen dan als bedreigingen zien.</li>
+                <li>Bedrijven die "Akkoord" gaan, hebben een licht positieve gemiddelde score (2), wat duidt op een gematigd optimistische kijk op maatschappelijke ontwikkelingen.</li>
+                <li>Interessant genoeg hebben bedrijven die zichzelf als niet-innovatief beschouwen ("Niet Akkoord") ook een licht positieve gemiddelde score (1.64).</li>
+                <li>Bedrijven die "Helemaal niet akkoord" gaan met de innovatie-stelling, hebben een negatieve gemiddelde score (-5.2), wat suggereert dat ze maatschappelijke ontwikkelingen meer als bedreiging zien.</li>
+            </ul>
+        </li>
+
+        <li><strong>Verband tussen innovatie en perceptie:</strong> Er is een positief verband tussen de mate waarin een bedrijf zichzelf als innovatief beschouwt en hoe het maatschappelijke ontwikkelingen ervaart. Meer innovatieve bedrijven neigen ernaar deze ontwikkelingen als kansen te zien.</li>
+
+        <li><strong>Uitschieters:</strong> Er zijn enkele opvallende uitschieters, zoals bedrijven die zichzelf als innovatief beschouwen maar toch een zeer negatieve score hebben op de perceptie van maatschappelijke ontwikkelingen. Dit suggereert dat innovatie alleen niet altijd leidt tot een positieve kijk op externe veranderingen.</li>
+
+        <li><strong>Onzekerheid:</strong> Bedrijven die 'Geen mening' hebben over hun innovativiteit, hebben gemiddeld een meer negatieve kijk op maatschappelijke ontwikkelingen (-2.50). Dit kan wijzen op een algemene onzekerheid of een gebrek aan duidelijke strategie in het bedrijf.</li>
+    </ol></div>
+
+<div class="description">
+    <h2>Innovatieve bedrijven zien maatschappelijke uitdagingen meer als een kans dan als een bedreiging</h2>
+    <p>Over het algemeen lijkt er een trend te zijn waarbij meer innovatieve bedrijven beter gepositioneerd zijn om maatschappelijke ontwikkelingen als kansen te zien. Dit kan komen doordat innovatieve bedrijven flexibeler zijn en beter kunnen inspelen op veranderingen. Echter, de aanwezigheid van uitschieters en de gemiddeld positieve score van niet-innovatieve bedrijven suggereren dat andere factoren ook een rol spelen in hoe bedrijven maatschappelijke ontwikkelingen ervaren.</p>
+
+    <p>Voor de bouwsector als geheel impliceert dit dat het stimuleren van innovatie kan helpen bij het creëren van een meer veerkrachtige en adaptieve industrie. Tegelijkertijd is het belangrijk om te erkennen dat innovatie alleen niet voldoende is; bedrijven moeten ook worden ondersteund in het ontwikkelen van strategieën om effectief om te gaan met maatschappelijke veranderingen.</p>
+<p>Deze diversiteit aan antwoorden onderstreept dat er geen one-size-fits-all aanpak is voor innovatie in de bouwsector.</p>
+   <p>Dit zou kunnen inhouden:</p>
+  <ul>
+    <li>Het aanbieden van praktische tools en methodologieën voor innovatie-implementatie.</li>
+    <li>Het ontwikkelen van financieringsmodellen die de risico's van innovatie helpen spreiden.</li>
+    <li>Het faciliteren van samenwerkingsverbanden en kennisuitwisseling binnen de sector.</li>
+    <li>Het bieden van gerichte opleidingen en bewustwordingsprogramma's.</li>
+    <li>Het werken aan een regelgevend kader dat innovatie stimuleert in plaats van belemmert.</li>
+  </ul>
+    <p>Onderstaande grafiek geeft de correlatie weer tussen "Mijn bedrijf is innovatief" en "meer kansen dan bedreigingen zien in maatschappelijke ontwikkelingen". Hoe meer hoger op de grafiek, hoe meer de bedrijven kansen zien. De grootte van de bollen geven weer hoeveel bedrijven elk antwoord hebben gegeven. De kleuren van de bollen geven weer of ze zichzelf zien als innovatief (groen) of helemaal niet (rood).</p>
+      <div id="chart_div_bedreigingofkans" class="chart"></div>
+
+    </div>
+
+<div class="description"> <h1>Foutenmarge-analyse</h1>
+
+    <h2>Berekening van de foutenmarge</h2>
+    <p>
+        Voor een steekproef van 108 bedrijven uit een populatie van 10.000 leden van Embuild Vlaanderen,
+        kunnen we de foutenmarge berekenen met de volgende formule:
+    </p>
+    <p>
+        Foutenmarge = z * √[(p * (1-p)) / n] * √[(N - n) / (N - 1)]
+    </p>
+    <p>Waarbij:</p>
+    <ul>
+        <li>z = 1,96 (voor een 95% betrouwbaarheidsniveau)</li>
+        <li>p = 0,5 (conservatieve schatting voor maximale variatie)</li>
+        <li>n = 108 (steekproefgrootte)</li>
+        <li>N = 10.000 (populatiegrootte)</li>
+    </ul>
+    <p>
+        Invullen van deze waarden geeft een foutenmarge van ongeveer 9,37%.
+    </p>
+
+    <h2>Visualisatie van de foutenmarge</h2>
+    <div id="curve_chart" style="width: 900px; height: 500px"></div>
+
+    <h2>Betrouwbaarheidsinterval</h2>
+    <p>
+        Met een foutenmarge van 9,37% en een betrouwbaarheidsniveau van 95%, kunnen we het volgende betrouwbaarheidsinterval construeren:
+    </p>
+    <div id="bar_chart" style="width: 900px; height: 300px"></div>
+    <p>
+        Dit betekent dat we met 95% zekerheid kunnen stellen dat het werkelijke percentage van een bepaald kenmerk in de populatie tussen de 40,63% en 59,37% ligt, gegeven een steekproefresultaat van 50%.
+    </p>
+    <p>Ondanks het beperkt aantal respondenten geven de resultaten toch nog waardevolle inzichten. De exacte nauwkeurigheid van de cijfers is minder belangrijk dan het patroon dat de resultaten laten zien, zelfs als de precieze percentages variëren binnen een bepaalde foutenmarge. De resultaten komen overeen met wat logisch lijkt en met wat we verwachten op basis van eerdere kennis. Hoewel het geruststellend is dat de enquêteresultaten overeenkomen met onze verwachtingen, is het belangrijk om voorzichtig te blijven bij een hoge foutenmarge.</p>
+</div>
+
+        </body>
+</html>
